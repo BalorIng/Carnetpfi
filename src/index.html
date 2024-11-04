@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Badge</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f4f4f9;
+        }
+
+        #carnet {
+            width: 5.4cm;
+            height: 8.6cm;
+            background-color: white;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            padding: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            position: relative;
+        }
+
+        #carnet img {
+            width: 3cm;
+            height: 3cm;
+            object-fit: cover;
+            border-radius: 50%;
+            margin-bottom: 10px;
+        }
+
+        #nombreEmpleado, #numeroEmpleado, #cargoEmpleado {
+            font-size: 14px;
+            margin: 5px 0;
+        }
+
+        #qrCode {
+            margin-top: 10px;
+        }
+
+        #saveCarnet {
+            margin-top: 20px;
+        }
+
+        /* Añadir un margen para perforación como en el diseño */
+        #perforacion {
+            width: 5.4cm;
+            height: 1cm;
+            background-color: red;
+            position: absolute;
+            top: -1cm;
+            left: 0;
+            right: 0;
+            border-radius: 10px 10px 0 0;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div id="carnet">
+        <div id="perforacion"></div>
+        <img id="fotoEmpleado" src="default-avatar.png" alt="Foto del empleado">
+        <div id="nombreEmpleado">Nombre del empleado</div>
+        <div id="numeroEmpleado">Número de empleado</div>
+        <div id="cargoEmpleado">Cargo del empleado</div>
+        <canvas id="qrCode"></canvas>
+    </div>
+
+    <form id="employeeForm">
+        <input type="text" id="nombre" placeholder="Nombre Completo"><br>
+        <input type="text" id="numero" placeholder="Número de Empleado"><br>
+        <input type="text" id="cargo" placeholder="Cargo"><br>
+        <input type="file" id="foto" accept="image/*"><br>
+        <button type="submit">Generar Carnet</button>
+        <button type="button" id="saveCarnet">Guardar Carnet</button>
+    </form>
+
+    <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script>
+        document.getElementById("employeeForm").addEventListener("submit", function(e) {
+            e.preventDefault();
+
+            // Obtener los valores del formulario
+            var nombre = document.getElementById("nombre").value;
+            var numero = document.getElementById("numero").value;
+            var cargo = document.getElementById("cargo").value;
+            var foto = document.getElementById("foto").files[0];
+
+            // Mostrar los datos en el carnet
+            document.getElementById("nombreEmpleado").innerText = nombre;
+            document.getElementById("numeroEmpleado").innerText = "Nº Empleado: " + numero;
+            document.getElementById("cargoEmpleado").innerText = "Cargo: " + cargo;
+
+            // Mostrar la foto en el carnet
+            var reader = new FileReader();
+            reader.onload = function(event) {
+                document.getElementById("fotoEmpleado").src = event.target.result;
+            };
+            reader.readAsDataURL(foto);
+
+            // Generar el código QR con la información del carnet
+            var qrContent = "Nombre: " + nombre + ", Nº Empleado: " + numero + ", Cargo: " + cargo;
+            QRCode.toCanvas(document.getElementById("qrCode"), qrContent, function(error) {
+                if (error) console.error(error);
+            });
+        });
+
+        // Guardar el carnet como imagen
+        document.getElementById("saveCarnet").addEventListener("click", function() {
+            var carnetElement = document.getElementById("carnet");
+
+            html2canvas(carnetElement).then(function(canvas) {
+                // Crear un enlace para descargar la imagen
+                var link = document.createElement('a');
+                link.download = 'carnet_empleado.png';
+                link.href = canvas.toDataURL();
+                link.click();
+            });
+        });
+    </script>
+
+</body>
+</html>
