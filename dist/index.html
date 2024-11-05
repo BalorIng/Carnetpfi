@@ -1,19 +1,9 @@
 <!DOCTYPE html>
-<html lang="en" >
-<head>
-  <meta charset="UTF-8">
-  <title>CodePen - CARNET</title>
-  <link rel="stylesheet" href="./style.css">
-
-</head>
-<body>
-<!-- partial:index.partial.html -->
-<!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Employee Badge</title>
+    <title>Login</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -21,126 +11,71 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
-            margin: 50;
-            background-color: #f4f4f9;
+            margin: 0;
+            background-color: #f0f2f5;
         }
-
-        #carnet {
-            width: 5.4cm;
-            height: 8.6cm;
+        .login-container {
+            width: 300px;
+            padding: 20px;
             background-color: white;
-            border: 2px solid #ddd;
-            border-radius: 10px;
-            padding: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+        .login-container h2 {
+            margin-bottom: 20px;
             text-align: center;
-            position: relative;
         }
-
-        #carnet img {
-            width: 3cm;
-            height: 3cm;
-            object-fit: cover;
-            border-radius: 50%;
-            margin-bottom: 10px;
-        }
-
-        #nombreEmpleado, #numeroEmpleado, #cargoEmpleado {
-            font-size: 14px;
+        .login-container input {
+            width: 100%;
+            padding: 10px;
             margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
         }
-
-        #qrCode {
-            margin-top: 10px;
+        .login-container button {
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
         }
-
-        #saveCarnet {
-            margin-top: 30px;
+        .login-container button:hover {
+            background-color: #45a049;
         }
-
-        /* Añadir un margen para perforación como en el diseño */
-        #perforacion {
-            width: 6.0cm;
-            height: 1cm;
-            background-color: black;
-            position: absolute;
-            top: -1cm;
-            left: 0;
-            right: 0;
-            border-radius: 100px 100px 0 0;
-        }
-
     </style>
 </head>
 <body>
 
-    <div id="carnet">
-        <div id="perforacion"></div>
-        <img id="fotoEmpleado" src="default-avatar.png" alt="Foto del empleado">
-        <div id="nombreEmpleado">Nombre del empleado</div>
-        <div id="numeroEmpleado">Número de empleado</div>
-        <div id="cargoEmpleado">Cargo del empleado</div>
-        <canvas id="qrCode"></canvas>
-    </div>
+<div class="login-container">
+    <h2>Iniciar Sesión</h2>
+    <input type="text" id="username" placeholder="Usuario">
+    <input type="password" id="password" placeholder="Contraseña">
+    <button onclick="login()">Ingresar</button>
+    <p id="error-message" style="color: red; text-align: center; display: none;">Usuario o contraseña incorrectos</p>
+</div>
 
-    <form id="employeeForm">
-        <input type="text" id="nombre" placeholder="Nombre Completo"><br>
-        <input type="text" id="numero" placeholder="Número de Empleado"><br>
-        <input type="text" id="cargo" placeholder="Cargo"><br>
-        <input type="file" id="foto" accept="image/*"><br>
-        <button type="submit">Generar Carnet</button>
-        <button type="button" id="saveCarnet">Guardar Carnet</button>
-    </form>
+<script>
+    function login() {
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
 
-    <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script>
-        document.getElementById("employeeForm").addEventListener("submit", function(e) {
-            e.preventDefault();
+        // Configura los valores correctos de usuario y contraseña
+        const validUsername = "admin";
+        const validPassword = "12345";
 
-            // Obtener los valores del formulario
-            var nombre = document.getElementById("nombre").value;
-            var numero = document.getElementById("numero").value;
-            var cargo = document.getElementById("cargo").value;
-            var foto = document.getElementById("foto").files[0];
-
-            // Mostrar los datos en el carnet
-            document.getElementById("nombreEmpleado").innerText = nombre;
-            document.getElementById("numeroEmpleado").innerText = "Nº Empleado: " + numero;
-            document.getElementById("cargoEmpleado").innerText = "Cargo: " + cargo;
-
-            // Mostrar la foto en el carnet
-            var reader = new FileReader();
-            reader.onload = function(event) {
-                document.getElementById("fotoEmpleado").src = event.target.result;
-            };
-            reader.readAsDataURL(foto);
-
-            // Generar el código QR con la información del carnet
-            var qrContent = "Nombre: " + nombre + ", Nº Empleado: " + numero + ", Cargo: " + cargo;
-            QRCode.toCanvas(document.getElementById("qrCode"), qrContent, function(error) {
-                if (error) console.error(error);
-            });
-        });
-
-        // Guardar el carnet como imagen
-        document.getElementById("saveCarnet").addEventListener("click", function() {
-            var carnetElement = document.getElementById("carnet");
-
-            html2canvas(carnetElement).then(function(canvas) {
-                // Crear un enlace para descargar la imagen
-                var link = document.createElement('a');
-                link.download = 'carnet_empleado.png';
-                link.href = canvas.toDataURL();
-                link.click();
-            });
-        });
-    </script>
+        // Verificación simple
+        if (username === validUsername && password === validPassword) {
+            // Redirige a la página de carnet si las credenciales son correctas
+            window.location.href = "Carnet9.html";
+        } else {
+            // Muestra un mensaje de error si las credenciales son incorrectas
+            document.getElementById('error-message').style.display = 'block';
+        }
+    }
+</script>
 
 </body>
 </html>
-<!-- partial -->
-  <script  src="./script.js"></script>
 
-</body>
-</html>
