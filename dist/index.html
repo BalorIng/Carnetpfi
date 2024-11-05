@@ -3,79 +3,221 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
+    <title> Carnet de Empleado Profin</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #f0f2f5;
+            margin: 20px;
         }
-        .login-container {
-            width: 300px;
-            padding: 20px;
-            background-color: white;
-            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-            border-radius: 8px;
-        }
-        .login-container h2 {
+        form {
             margin-bottom: 20px;
-            text-align: center;
+            padding: 20px;
+            background-color: #f0f0f0;
+            border-radius: 10px;
         }
-        .login-container input {
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+        label {
+            font-weight: bold;
+            margin-top: 10px;
+            display: block;
         }
-        .login-container button {
+        input, textarea {
             width: 100%;
+            margin-bottom: 10px;
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        button {
             padding: 10px;
-            background-color: #4CAF50;
+            background-color: #ff8c00; /* Color anaranjado */
             color: white;
             border: none;
-            border-radius: 4px;
+            border-radius: 5px;
             cursor: pointer;
         }
-        .login-container button:hover {
-            background-color: #45a049;
+        button:hover {
+            background-color: #e07a00; /* Color anaranjado oscuro para el hover */
+        }
+        #carnet-anverso, #carnet-reverso {
+            margin-top: 20px;
+            border: 2px solid #000;
+            padding: 10px;
+            width: 5.5cm;
+            height: 8.5cm;
+            text-align: center;
+            background-color: #fff;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+            display: inline-block;
+            vertical-align: top;
+        }
+        #carnet-anverso img {
+            width: 100px;
+            height: 100px;
+            display: block;
+            margin: 10px auto;
+            border-radius: 50%;
+        }
+        #qrCode {
+            width: 100px;
+            height: 100px;
         }
     </style>
 </head>
 <body>
 
-<div class="login-container">
-    <h2>Iniciar Sesión</h2>
-    <input type="text" id="username" placeholder="Usuario">
-    <input type="password" id="password" placeholder="Contraseña">
-    <button onclick="login()">Ingresar</button>
-    <p id="error-message" style="color: red; text-align: center; display: none;">Usuario o contraseña incorrectos</p>
+<h1>Carnet de Empleado</h1>
+
+<form id="employeeForm">
+    <label for="idEmpleado">ID del Empleado:</label>
+    <input type="text" id="idEmpleado" required>
+
+    <label for="nombre">Nombres:</label>
+    <input type="text" id="nombre" required>
+
+    <label for="apellido">Apellidos:</label>
+    <input type="text" id="apellido" required>
+
+    <label for="identidad">Identidad:</label>
+    <input type="text" id="identidad" required>
+
+    <label for="cargo">Cargo del empleado:</label>
+    <input type="text" id="cargo" required>
+
+    <label for="fechaContratacion">Fecha de contratación:</label>
+    <input type="date" id="fechaContratacion" required>
+
+    <label for="foto">Foto del empleado:</label>
+    <input type="file" id="foto" accept="image/*" required>
+
+    <label for="fondoCarnet">Imagen de fondo para el carnet:</label>
+    <input type="file" id="fondoCarnet" accept="image/*">
+
+    <button type="button" onclick="generateCard()">Generar Carnet</button>
+    <button type="button" onclick="clearForm()">Borrar Información</button>
+    <button type="button" onclick="exportToExcel()">Exportar a Excel</button>
+    <button type="button" onclick="downloadCarnet()">Descargar Carnet</button>
+</form>
+
+<div id="carnet-anverso">
+    <img id="carnetFoto" src="" alt="Foto del empleado">
+    <p id="carnetNombre"></p>
+    <p id="carnetCargo"></p>
 </div>
 
+<div id="carnet-reverso">
+    <p>Fecha de contratación: <span id="carnetFechaContratacion"></span></p>
+    <p>Código QR para verificación</p>
+    <img id="qrCode" alt="Código QR">
+</div>
+
+<h2>Empleados Guardados</h2>
+<table id="employeeTable">
+    <thead>
+        <tr>
+            <th>ID Empleado</th>
+            <th>Identidad</th>
+            <th>Nombre</th>
+            <th>Apellido</th>
+            <th>Cargo</th>
+            <th>Fecha Contratación</th>
+        </tr>
+    </thead>
+    <tbody>
+    </tbody>
+</table>
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
 <script>
-    function login() {
-        const username = document.getElementById('username').value;
-        const password = document.getElementById('password').value;
+    function generateCard() {
+        const idEmpleado = document.getElementById('idEmpleado').value;
+        const nombre = document.getElementById('nombre').value;
+        const apellido = document.getElementById('apellido').value;
+        const cargo = document.getElementById('cargo').value;
+        const fechaContratacion = document.getElementById('fechaContratacion').value;
+        const identidad = document.getElementById('identidad').value;
 
-        // Configura los valores correctos de usuario y contraseña
-        const validUsername = "admin";
-        const validPassword = "12345";
+        document.getElementById('carnetNombre').textContent = `${nombre} ${apellido}`;
+        document.getElementById('carnetCargo').textContent = `Cargo: ${cargo}`;
+        document.getElementById('carnetFechaContratacion').textContent = fechaContratacion;
 
-        // Verificación simple
-        if (username === validUsername && password === validPassword) {
-            // Redirige a la página de carnet si las credenciales son correctas
-            window.location.href = "Carnet9.html";
-        } else {
-            // Muestra un mensaje de error si las credenciales son incorrectas
-            document.getElementById('error-message').style.display = 'block';
+        const fotoInput = document.getElementById('foto');
+        const carnetFoto = document.getElementById('carnetFoto');
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            carnetFoto.src = e.target.result;
+            carnetFoto.style.display = 'block';
         }
+        reader.readAsDataURL(fotoInput.files[0]);
+
+        const fondoInput = document.getElementById('fondoCarnet');
+        const carnetAnverso = document.getElementById('carnet-anverso');
+        if (fondoInput.files.length > 0) {
+            const fondoReader = new FileReader();
+            fondoReader.onload = function(e) {
+                carnetAnverso.style.backgroundImage = `url(${e.target.result})`;
+            }
+            fondoReader.readAsDataURL(fondoInput.files[0]);
+        } else {
+            carnetAnverso.style.backgroundImage = 'none';
+        }
+
+        const qrCode = new QRious({
+            element: document.getElementById('qrCode'),
+            size: 100,
+            value: `ID: ${idEmpleado}, Nombre: ${nombre} ${apellido}, Identidad: ${identidad}`
+        });
+
+        const employeeTable = document.getElementById('employeeTable').getElementsByTagName('tbody')[0];
+        const newRow = employeeTable.insertRow();
+        newRow.innerHTML = `<td>${idEmpleado}</td><td>${identidad}</td><td>${nombre}</td><td>${apellido}</td><td>${cargo}</td><td>${fechaContratacion}</td>`;
+    }
+
+    function clearForm() {
+        document.getElementById('employeeForm').reset();
+        document.getElementById('carnetNombre').textContent = '';
+        document.getElementById('carnetCargo').textContent = '';
+        document.getElementById('carnetFechaContratacion').textContent = '';
+        document.getElementById('carnetFoto').src = '';
+        document.getElementById('qrCode').src = '';
+        document.getElementById('carnet-anverso').style.backgroundImage = 'none';
+
+        const employeeTable = document.getElementById('employeeTable').getElementsByTagName('tbody')[0];
+        employeeTable.innerHTML = '';
+    }
+
+    function exportToExcel() {
+        const table = document.getElementById('employeeTable');
+        const workbook = XLSX.utils.table_to_book(table, { sheet: "Empleados" });
+        XLSX.writeFile(workbook, "empleados.xlsx");
+    }
+
+    async function downloadCarnet() {
+        const idEmpleado = document.getElementById('idEmpleado').value;
+        const nombre = document.getElementById('nombre').value;
+        const apellido = document.getElementById('apellido').value;
+
+        const zip = new JSZip();
+
+        const anversoCanvas = await html2canvas(document.getElementById('carnet-anverso'));
+        const anversoDataUrl = anversoCanvas.toDataURL('image/png');
+        zip.file('carnet_parte_de_enfrente.png', anversoDataUrl.split(',')[1], { base64: true });
+
+        const reversoCanvas = await html2canvas(document.getElementById('carnet-reverso'));
+        const reversoDataUrl = reversoCanvas.toDataURL('image/png');
+        zip.file('carnet_parte_de_atras.png', reversoDataUrl.split(',')[1], { base64: true });
+
+        const content = await zip.generateAsync({ type: 'blob' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(content);
+        a.download = `Carnet_${idEmpleado}_${nombre}_${apellido}.zip`;
+        a.click();
     }
 </script>
 
 </body>
 </html>
-
