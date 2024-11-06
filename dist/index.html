@@ -5,64 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title> Carnet de Empleado Profin</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-        form {
-            margin-bottom: 20px;
-            padding: 20px;
-            background-color: #f0f0f0;
-            border-radius: 10px;
-        }
-        label {
-            font-weight: bold;
-            margin-top: 10px;
-            display: block;
-        }
-        input, textarea {
-            width: 100%;
-            margin-bottom: 10px;
-            padding: 8px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-        }
-        button {
-            padding: 10px;
-            background-color: #ff8c00; /* Color anaranjado */
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #e07a00; /* Color anaranjado oscuro para el hover */
-        }
-        #carnet-anverso, #carnet-reverso {
-            margin-top: 20px;
-            border: 2px solid #000;
-            padding: 10px;
-            width: 5.5cm;
-            height: 8.5cm;
-            text-align: center;
-            background-color: #fff;
-            background-size: cover;
-            background-position: center;
-            position: relative;
-            display: inline-block;
-            vertical-align: top;
-        }
-        #carnet-anverso img {
-            width: 100px;
-            height: 100px;
-            display: block;
-            margin: 10px auto;
-            border-radius: 50%;
-        }
-        #qrCode {
-            width: 100px;
-            height: 100px;
-        }
+        /* Estilos del formulario */
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        form { margin-bottom: 20px; padding: 20px; background-color: #f0f0f0; border-radius: 10px; }
+        label { font-weight: bold; margin-top: 10px; display: block; }
+        input, textarea { width: 100%; margin-bottom: 10px; padding: 8px; border-radius: 5px; border: 1px solid #ccc; }
+        button { padding: 10px; background-color: #ff8c00; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background-color: #e07a00; }
+        #carnet-anverso, #carnet-reverso { margin-top: 20px; border: 2px solid #000; padding: 10px; width: 5.5cm; height: 8.5cm; text-align: center; background-color: #fff; background-size: cover; background-position: center; position: relative; display: inline-block; vertical-align: top; }
+        #carnet-anverso img { width: 100px; height: 100px; display: block; margin: 10px auto; border-radius: 50%; }
+        #qrCode { width: 100px; height: 100px; }
     </style>
 </head>
 <body>
@@ -133,6 +85,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
 <script>
+    document.addEventListener('DOMContentLoaded', loadStoredEmployees);
+
     function generateCard() {
         const idEmpleado = document.getElementById('idEmpleado').value;
         const nombre = document.getElementById('nombre').value;
@@ -140,6 +94,12 @@
         const cargo = document.getElementById('cargo').value;
         const fechaContratacion = document.getElementById('fechaContratacion').value;
         const identidad = document.getElementById('identidad').value;
+
+        // Verificar si ya existe el ID o Identidad en el almacenamiento local
+        if (isDuplicate(idEmpleado, identidad)) {
+            alert("Este ID del Empleado o Identidad ya existe. No se puede duplicar.");
+            return;
+        }
 
         document.getElementById('carnetNombre').textContent = `${nombre} ${apellido}`;
         document.getElementById('carnetCargo').textContent = `Cargo: ${cargo}`;
@@ -154,27 +114,36 @@
         }
         reader.readAsDataURL(fotoInput.files[0]);
 
-        const fondoInput = document.getElementById('fondoCarnet');
-        const carnetAnverso = document.getElementById('carnet-anverso');
-        if (fondoInput.files.length > 0) {
-            const fondoReader = new FileReader();
-            fondoReader.onload = function(e) {
-                carnetAnverso.style.backgroundImage = `url(${e.target.result})`;
-            }
-            fondoReader.readAsDataURL(fondoInput.files[0]);
-        } else {
-            carnetAnverso.style.backgroundImage = 'none';
-        }
-
         const qrCode = new QRious({
             element: document.getElementById('qrCode'),
             size: 100,
             value: `ID: ${idEmpleado}, Nombre: ${nombre} ${apellido}, Identidad: ${identidad}`
         });
 
+        addEmployeeToTable(idEmpleado, identidad, nombre, apellido, cargo, fechaContratacion);
+        saveEmployeeToLocalStorage(idEmpleado, identidad, nombre, apellido, cargo, fechaContratacion);
+    }
+
+    function isDuplicate(idEmpleado, identidad) {
+        const employees = JSON.parse(localStorage.getItem('employees') || '[]');
+        return employees.some(emp => emp.id === idEmpleado || emp.identidad === identidad);
+    }
+
+    function addEmployeeToTable(id, identidad, nombre, apellido, cargo, fecha) {
         const employeeTable = document.getElementById('employeeTable').getElementsByTagName('tbody')[0];
         const newRow = employeeTable.insertRow();
-        newRow.innerHTML = `<td>${idEmpleado}</td><td>${identidad}</td><td>${nombre}</td><td>${apellido}</td><td>${cargo}</td><td>${fechaContratacion}</td>`;
+        newRow.innerHTML = `<td>${id}</td><td>${identidad}</td><td>${nombre}</td><td>${apellido}</td><td>${cargo}</td><td>${fecha}</td>`;
+    }
+
+    function saveEmployeeToLocalStorage(id, identidad, nombre, apellido, cargo, fecha) {
+        const employees = JSON.parse(localStorage.getItem('employees') || '[]');
+        employees.push({ id, identidad, nombre, apellido, cargo, fecha });
+        localStorage.setItem('employees', JSON.stringify(employees));
+    }
+
+    function loadStoredEmployees() {
+        const employees = JSON.parse(localStorage.getItem('employees') || '[]');
+        employees.forEach(emp => addEmployeeToTable(emp.id, emp.identidad, emp.nombre, emp.apellido, emp.cargo, emp.fecha));
     }
 
     function clearForm() {
@@ -186,6 +155,7 @@
         document.getElementById('qrCode').src = '';
         document.getElementById('carnet-anverso').style.backgroundImage = 'none';
 
+        localStorage.removeItem('employees');
         const employeeTable = document.getElementById('employeeTable').getElementsByTagName('tbody')[0];
         employeeTable.innerHTML = '';
     }
@@ -202,20 +172,20 @@
         const apellido = document.getElementById('apellido').value;
 
         const zip = new JSZip();
-
         const anversoCanvas = await html2canvas(document.getElementById('carnet-anverso'));
         const anversoDataUrl = anversoCanvas.toDataURL('image/png');
-        zip.file('carnet_parte_de_enfrente.png', anversoDataUrl.split(',')[1], { base64: true });
+        zip.file('carnet_parte_frontal.png', anversoDataUrl.split(',')[1], { base64: true });
 
         const reversoCanvas = await html2canvas(document.getElementById('carnet-reverso'));
         const reversoDataUrl = reversoCanvas.toDataURL('image/png');
         zip.file('carnet_parte_de_atras.png', reversoDataUrl.split(',')[1], { base64: true });
 
-        const content = await zip.generateAsync({ type: 'blob' });
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(content);
-        a.download = `Carnet_${idEmpleado}_${nombre}_${apellido}.zip`;
-        a.click();
+        zip.generateAsync({ type: 'blob' }).then(content => {
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(content);
+            link.download = `Carnet_${idEmpleado}_${nombre}_${apellido}.zip`;
+            link.click();
+        });
     }
 </script>
 
