@@ -1,131 +1,202 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Employee Badge</title>
+    <title>Carnet de Empleado y Biblioteca</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #f4f4f9;
-        }
-
-        #carnet {
-            width: 5.4cm;
-            height: 8.6cm;
-            background-color: white;
-            border: 2px solid #ddd;
-            border-radius: 10px;
-            padding: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            text-align: center;
-            position: relative;
-        }
-
-        #carnet img {
-            width: 3cm;
-            height: 3cm;
-            object-fit: cover;
-            border-radius: 50%;
-            margin-bottom: 10px;
-        }
-
-        #nombreEmpleado, #numeroEmpleado, #cargoEmpleado {
-            font-size: 14px;
-            margin: 5px 0;
-        }
-
-        #qrCode {
-            margin-top: 10px;
-        }
-
-        #saveCarnet {
-            margin-top: 20px;
-        }
-
-        /* Añadir un margen para perforación como en el diseño */
-        #perforacion {
-            width: 5.4cm;
-            height: 1cm;
-            background-color: red;
-            position: absolute;
-            top: -1cm;
-            left: 0;
-            right: 0;
-            border-radius: 10px 10px 0 0;
-        }
-
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        form { margin-bottom: 20px; padding: 20px; background-color: #f0f0f0; border-radius: 10px; }
+        label { font-weight: bold; margin-top: 10px; display: block; }
+        input, textarea { width: 100%; margin-bottom: 10px; padding: 8px; border-radius: 5px; border: 1px solid #ccc; }
+        button { padding: 10px; background-color: #ff8c00; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background-color: #e07a00; }
+        #carnet-anverso, #carnet-reverso { margin-top: 20px; border: 2px solid #000; padding: 10px; width: 5.5cm; height: 8.5cm; text-align: center; background-color: #fff; position: relative; display: inline-block; vertical-align: top; }
+        #carnet-anverso img { width: 100px; height: 100px; display: block; margin: 10px auto; border-radius: 50%; }
+        #qrCode { width: 100px; height: 100px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 30px; }
+        table, th, td { border: 1px solid #ddd; }
+        th, td { padding: 8px; text-align: left; }
     </style>
 </head>
 <body>
 
-    <div id="carnet">
-        <div id="perforacion"></div>
-        <img id="fotoEmpleado" src="default-avatar.png" alt="Foto del empleado">
-        <div id="nombreEmpleado">Nombre del empleado</div>
-        <div id="numeroEmpleado">Número de empleado</div>
-        <div id="cargoEmpleado">Cargo del empleado</div>
-        <canvas id="qrCode"></canvas>
-    </div>
+<h1>
+    <img src="https://i.ibb.co/dtTzh8F/finn-balor-judgement-day-logo-by-kieranthekiz-dg16bj8-fullview.png" 
+         alt="logo" 
+         style="width: 50px; vertical-align: middle; margin-right: 10px;">
+    Carnet de Empleado y Biblioteca
+</h1>
 
-    <form id="employeeForm">
-        <input type="text" id="nombre" placeholder="Nombre Completo"><br>
-        <input type="text" id="numero" placeholder="Número de Empleado"><br>
-        <input type="text" id="cargo" placeholder="Cargo"><br>
-        <input type="file" id="foto" accept="image/*"><br>
-        <button type="submit">Generar Carnet</button>
-        <button type="button" id="saveCarnet">Guardar Carnet</button>
-    </form>
+<form id="employeeForm">
+    <label for="idEmpleado">ID del Empleado:</label>
+    <input type="text" id="idEmpleado" required>
 
-    <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script>
-        document.getElementById("employeeForm").addEventListener("submit", function(e) {
-            e.preventDefault();
+    <label for="nombre">Nombres:</label>
+    <input type="text" id="nombre" required>
 
-            // Obtener los valores del formulario
-            var nombre = document.getElementById("nombre").value;
-            var numero = document.getElementById("numero").value;
-            var cargo = document.getElementById("cargo").value;
-            var foto = document.getElementById("foto").files[0];
+    <label for="apellido">Apellidos:</label>
+    <input type="text" id="apellido" required>
 
-            // Mostrar los datos en el carnet
-            document.getElementById("nombreEmpleado").innerText = nombre;
-            document.getElementById("numeroEmpleado").innerText = "Nº Empleado: " + numero;
-            document.getElementById("cargoEmpleado").innerText = "Cargo: " + cargo;
+    <label for="identidad">Identidad:</label>
+    <input type="text" id="identidad" required>
 
-            // Mostrar la foto en el carnet
-            var reader = new FileReader();
-            reader.onload = function(event) {
-                document.getElementById("fotoEmpleado").src = event.target.result;
+    <label for="cargo">Cargo del empleado:</label>
+    <input type="text" id="cargo" required>
+
+    <label for="fechaContratacion">Fecha de contratación:</label>
+    <input type="date" id="fechaContratacion" required>
+
+    <label for="foto">Foto del empleado:</label>
+    <input type="file" id="foto" accept="image/*" required>
+
+    <label for="fondoCarnet">Imagen de fondo para el carnet:</label>
+    <input type="file" id="fondoCarnet" accept="image/*">
+
+    <button type="button" onclick="generateCard()">Generar Carnet</button>
+    <button type="button" onclick="clearForm()">Limpiar Formulario</button>
+</form>
+
+<div id="carnet-anverso">
+    <img id="carnetFoto" src="" alt="Foto del empleado">
+    <p id="carnetNombre"></p>
+    <p id="carnetCargo"></p>
+</div>
+
+<div id="carnet-reverso">
+    <p>Fecha de contratación: <span id="carnetFechaContratacion"></span></p>
+    <p>Código QR para verificación</p>
+    <img id="qrCode" alt="Código QR">
+</div>
+
+<h2>Biblioteca de Carnets</h2>
+<table id="libraryTable">
+    <thead>
+        <tr>
+            <th>ID del Empleado</th>
+            <th>Nombre</th>
+            <th>Identidad</th>
+            <th>Cargo</th>
+            <th>Ver Carnet</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+<script>
+    let employeeData = [];
+
+    function generateCard() {
+        const idEmpleado = document.getElementById('idEmpleado').value.trim();
+        const nombre = document.getElementById('nombre').value.trim();
+        const apellido = document.getElementById('apellido').value.trim();
+        const identidad = document.getElementById('identidad').value.trim();
+        const cargo = document.getElementById('cargo').value.trim();
+        const fechaContratacion = document.getElementById('fechaContratacion').value;
+
+        if (!idEmpleado || !nombre || !apellido || !identidad || !cargo || !fechaContratacion) {
+            alert("Por favor, completa todos los campos obligatorios.");
+            return;
+        }
+
+        document.getElementById('carnetNombre').textContent = `${nombre} ${apellido}`;
+        document.getElementById('carnetCargo').textContent = `Cargo: ${cargo}`;
+        document.getElementById('carnetFechaContratacion').textContent = fechaContratacion;
+
+        const fotoInput = document.getElementById('foto');
+        const carnetFoto = document.getElementById('carnetFoto');
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            carnetFoto.src = e.target.result;
+        };
+        reader.readAsDataURL(fotoInput.files[0]);
+
+        const fondoInput = document.getElementById('fondoCarnet');
+        if (fondoInput.files[0]) {
+            const fondoReader = new FileReader();
+            fondoReader.onload = function(e) {
+                document.getElementById('carnet-anverso').style.backgroundImage = `url(${e.target.result})`;
             };
-            reader.readAsDataURL(foto);
+            fondoReader.readAsDataURL(fondoInput.files[0]);
+        }
 
-            // Generar el código QR con la información del carnet
-            var qrContent = "Nombre: " + nombre + ", Nº Empleado: " + numero + ", Cargo: " + cargo;
-            QRCode.toCanvas(document.getElementById("qrCode"), qrContent, function(error) {
-                if (error) console.error(error);
-            });
+        const employeeID = generateUniqueID();
+        const employeeUrl = `empleado/${employeeID}.html`;
+
+        new QRious({
+            element: document.getElementById('qrCode'),
+            size: 100,
+            value: `https://baloring.github.io/Carnetpfi/${employeeUrl}`
         });
 
-        // Guardar el carnet como imagen
-        document.getElementById("saveCarnet").addEventListener("click", function() {
-            var carnetElement = document.getElementById("carnet");
-
-            html2canvas(carnetElement).then(function(canvas) {
-                // Crear un enlace para descargar la imagen
-                var link = document.createElement('a');
-                link.download = 'carnet_empleado.png';
-                link.href = canvas.toDataURL();
-                link.click();
-            });
+        employeeData.push({ 
+            id: idEmpleado, 
+            nombre: `${nombre} ${apellido}`, 
+            identidad, 
+            cargo, 
+            fechaContratacion, 
+            url: employeeUrl 
         });
-    </script>
+        localStorage.setItem('employeeData', JSON.stringify(employeeData));
 
+        createEmployeePage(employeeID, nombre, apellido, identidad, cargo, fechaContratacion, document.getElementById('carnetFoto').src);
+        displayLibrary();
+    }
+
+    function generateUniqueID() {
+        return 'ID' + Math.random().toString(36).substr(2, 9);
+    }
+
+    function createEmployeePage(employeeID, nombre, apellido, identidad, cargo, fechaContratacion, fotoSrc) {
+        const employeePageContent = `
+        <!DOCTYPE html>
+        <html lang="es">
+        <head><meta charset="UTF-8"><title>Carnet de ${nombre} ${apellido}</title></head>
+        <body style="text-align: center;">
+            <h1>${nombre} ${apellido}</h1>
+            <p>ID Empleado: ${employeeID}</p>
+            <p>Identidad: ${identidad}</p>
+            <p>Cargo: ${cargo}</p>
+            <p>Fecha de Contratación: ${fechaContratacion}</p>
+            <img src="${fotoSrc}" alt="Foto del empleado" style="width: 150px; border-radius: 10px;">
+        </body>
+        </html>`;
+
+        const blob = new Blob([employeePageContent], { type: 'text/html' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `empleado/${employeeID}.html`;
+        link.click();
+    }
+
+    function clearForm() {
+        document.getElementById('employeeForm').reset();
+        document.getElementById('carnetFoto').src = '';
+        document.getElementById('carnet-anverso').style.backgroundImage = 'none';
+    }
+
+    function displayLibrary() {
+        const tbody = document.querySelector('#libraryTable tbody');
+        tbody.innerHTML = '';
+
+        employeeData.forEach(employee => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${employee.id}</td>
+                <td>${employee.nombre}</td>
+                <td>${employee.identidad}</td>
+                <td>${employee.cargo}</td>
+                <td><a href="${employee.url}" target="_blank">Ver Carnet</a></td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
+
+    window.onload = function() {
+        employeeData = JSON.parse(localStorage.getItem('employeeData')) || [];
+        displayLibrary();
+    };
+</script>
 </body>
 </html>
