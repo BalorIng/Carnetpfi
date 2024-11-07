@@ -3,27 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title> Carnet de Empleado Profin</title>
+    <title>Carnet de Empleado y Biblioteca</title>
     <style>
-        /* Estilos del formulario */
         body { font-family: Arial, sans-serif; margin: 20px; }
         form { margin-bottom: 20px; padding: 20px; background-color: #f0f0f0; border-radius: 10px; }
         label { font-weight: bold; margin-top: 10px; display: block; }
         input, textarea { width: 100%; margin-bottom: 10px; padding: 8px; border-radius: 5px; border: 1px solid #ccc; }
         button { padding: 10px; background-color: #ff8c00; color: white; border: none; border-radius: 5px; cursor: pointer; }
         button:hover { background-color: #e07a00; }
-        #carnet-anverso, #carnet-reverso { margin-top: 20px; border: 2px solid #000; padding: 10px; width: 5.5cm; height: 8.5cm; text-align: center; background-color: #fff; background-size: cover; background-position: center; position: relative; display: inline-block; vertical-align: top; }
+        #carnet-anverso, #carnet-reverso { margin-top: 20px; border: 2px solid #000; padding: 10px; width: 5.5cm; height: 8.5cm; text-align: center; background-color: #fff; position: relative; display: inline-block; vertical-align: top; }
         #carnet-anverso img { width: 100px; height: 100px; display: block; margin: 10px auto; border-radius: 50%; }
         #qrCode { width: 100px; height: 100px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 30px; }
+        table, th, td { border: 1px solid #ddd; }
+        th, td { padding: 8px; text-align: left; }
     </style>
 </head>
 <body>
+
 <h1>
-        <img src="https://i.ibb.co/dtTzh8F/finn-balor-judgement-day-logo-by-kieranthekiz-dg16bj8-fullview.png" 
-             alt="logo" 
-             style="width: 50px; vertical-align: middle; margin-right: 10px;">
-        Carnet de Empleado
-    </h1>
+    <img src="https://i.ibb.co/dtTzh8F/finn-balor-judgement-day-logo-by-kieranthekiz-dg16bj8-fullview.png" 
+         alt="logo" 
+         style="width: 50px; vertical-align: middle; margin-right: 10px;">
+    Carnet de Empleado y Biblioteca
+</h1>
+
 <form id="employeeForm">
     <label for="idEmpleado">ID del Empleado:</label>
     <input type="text" id="idEmpleado" required>
@@ -50,9 +54,7 @@
     <input type="file" id="fondoCarnet" accept="image/*">
 
     <button type="button" onclick="generateCard()">Generar Carnet</button>
-    <button type="button" onclick="clearForm()">Borrar Información</button>
-    <button type="button" onclick="exportToExcel()">Exportar a Excel</button>
-    <button type="button" onclick="downloadCarnet()">Descargar Carnet</button>
+    <button type="button" onclick="clearForm()">Limpiar Formulario</button>
 </form>
 
 <div id="carnet-anverso">
@@ -67,40 +69,34 @@
     <img id="qrCode" alt="Código QR">
 </div>
 
-<h2>Empleados Guardados</h2>
-<table id="employeeTable">
+<h2>Biblioteca de Carnets</h2>
+<table id="libraryTable">
     <thead>
         <tr>
-            <th>ID Empleado</th>
-            <th>Identidad</th>
+            <th>ID del Empleado</th>
             <th>Nombre</th>
-            <th>Apellido</th>
+            <th>Identidad</th>
             <th>Cargo</th>
-            <th>Fecha Contratación</th>
+            <th>Ver Carnet</th>
         </tr>
     </thead>
-    <tbody>
-    </tbody>
+    <tbody></tbody>
 </table>
 
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', loadStoredEmployees);
+    let employeeData = [];
 
     function generateCard() {
-        const idEmpleado = document.getElementById('idEmpleado').value;
-        const nombre = document.getElementById('nombre').value;
-        const apellido = document.getElementById('apellido').value;
-        const cargo = document.getElementById('cargo').value;
+        const idEmpleado = document.getElementById('idEmpleado').value.trim();
+        const nombre = document.getElementById('nombre').value.trim();
+        const apellido = document.getElementById('apellido').value.trim();
+        const identidad = document.getElementById('identidad').value.trim();
+        const cargo = document.getElementById('cargo').value.trim();
         const fechaContratacion = document.getElementById('fechaContratacion').value;
-        const identidad = document.getElementById('identidad').value;
 
-        // Verificar si ya existe el ID o Identidad en el almacenamiento local
-        if (isDuplicate(idEmpleado, identidad)) {
-            alert("Este ID del Empleado o Identidad ya existe. No se puede duplicar.");
+        if (!idEmpleado || !nombre || !apellido || !identidad || !cargo || !fechaContratacion) {
+            alert("Por favor, completa todos los campos obligatorios.");
             return;
         }
 
@@ -113,84 +109,94 @@
         const reader = new FileReader();
         reader.onload = function(e) {
             carnetFoto.src = e.target.result;
-            carnetFoto.style.display = 'block';
-        }
+        };
         reader.readAsDataURL(fotoInput.files[0]);
 
-        const qrCode = new QRious({
+        const fondoInput = document.getElementById('fondoCarnet');
+        if (fondoInput.files[0]) {
+            const fondoReader = new FileReader();
+            fondoReader.onload = function(e) {
+                document.getElementById('carnet-anverso').style.backgroundImage = `url(${e.target.result})`;
+            };
+            fondoReader.readAsDataURL(fondoInput.files[0]);
+        }
+
+        const employeeID = generateUniqueID();
+        const employeeUrl = `empleado/${employeeID}.html`;
+
+        new QRious({
             element: document.getElementById('qrCode'),
             size: 100,
-            value: `ID: ${idEmpleado}, Nombre: ${nombre} ${apellido}, Identidad: ${identidad}`
+            value: `https://baloring.github.io/Carnetpfi/${employeeUrl}`
         });
 
-        addEmployeeToTable(idEmpleado, identidad, nombre, apellido, cargo, fechaContratacion);
-        saveEmployeeToLocalStorage(idEmpleado, identidad, nombre, apellido, cargo, fechaContratacion);
+        employeeData.push({ 
+            id: idEmpleado, 
+            nombre: `${nombre} ${apellido}`, 
+            identidad, 
+            cargo, 
+            fechaContratacion, 
+            url: employeeUrl 
+        });
+        localStorage.setItem('employeeData', JSON.stringify(employeeData));
+
+        createEmployeePage(employeeID, nombre, apellido, identidad, cargo, fechaContratacion, document.getElementById('carnetFoto').src);
+        displayLibrary();
     }
 
-    function isDuplicate(idEmpleado, identidad) {
-        const employees = JSON.parse(localStorage.getItem('employees') || '[]');
-        return employees.some(emp => emp.id === idEmpleado || emp.identidad === identidad);
+    function generateUniqueID() {
+        return 'ID' + Math.random().toString(36).substr(2, 9);
     }
 
-    function addEmployeeToTable(id, identidad, nombre, apellido, cargo, fecha) {
-        const employeeTable = document.getElementById('employeeTable').getElementsByTagName('tbody')[0];
-        const newRow = employeeTable.insertRow();
-        newRow.innerHTML = `<td>${id}</td><td>${identidad}</td><td>${nombre}</td><td>${apellido}</td><td>${cargo}</td><td>${fecha}</td>`;
-    }
+    function createEmployeePage(employeeID, nombre, apellido, identidad, cargo, fechaContratacion, fotoSrc) {
+        const employeePageContent = `
+        <!DOCTYPE html>
+        <html lang="es">
+        <head><meta charset="UTF-8"><title>Carnet de ${nombre} ${apellido}</title></head>
+        <body style="text-align: center;">
+            <h1>${nombre} ${apellido}</h1>
+            <p>ID Empleado: ${employeeID}</p>
+            <p>Identidad: ${identidad}</p>
+            <p>Cargo: ${cargo}</p>
+            <p>Fecha de Contratación: ${fechaContratacion}</p>
+            <img src="${fotoSrc}" alt="Foto del empleado" style="width: 150px; border-radius: 10px;">
+        </body>
+        </html>`;
 
-    function saveEmployeeToLocalStorage(id, identidad, nombre, apellido, cargo, fecha) {
-        const employees = JSON.parse(localStorage.getItem('employees') || '[]');
-        employees.push({ id, identidad, nombre, apellido, cargo, fecha });
-        localStorage.setItem('employees', JSON.stringify(employees));
-    }
-
-    function loadStoredEmployees() {
-        const employees = JSON.parse(localStorage.getItem('employees') || '[]');
-        employees.forEach(emp => addEmployeeToTable(emp.id, emp.identidad, emp.nombre, emp.apellido, emp.cargo, emp.fecha));
+        const blob = new Blob([employeePageContent], { type: 'text/html' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `empleado/${employeeID}.html`;
+        link.click();
     }
 
     function clearForm() {
         document.getElementById('employeeForm').reset();
-        document.getElementById('carnetNombre').textContent = '';
-        document.getElementById('carnetCargo').textContent = '';
-        document.getElementById('carnetFechaContratacion').textContent = '';
         document.getElementById('carnetFoto').src = '';
-        document.getElementById('qrCode').src = '';
         document.getElementById('carnet-anverso').style.backgroundImage = 'none';
-
-        localStorage.removeItem('employees');
-        const employeeTable = document.getElementById('employeeTable').getElementsByTagName('tbody')[0];
-        employeeTable.innerHTML = '';
     }
 
-    function exportToExcel() {
-        const table = document.getElementById('employeeTable');
-        const workbook = XLSX.utils.table_to_book(table, { sheet: "Empleados" });
-        XLSX.writeFile(workbook, "empleados.xlsx");
-    }
+    function displayLibrary() {
+        const tbody = document.querySelector('#libraryTable tbody');
+        tbody.innerHTML = '';
 
-    async function downloadCarnet() {
-        const idEmpleado = document.getElementById('idEmpleado').value;
-        const nombre = document.getElementById('nombre').value;
-        const apellido = document.getElementById('apellido').value;
-
-        const zip = new JSZip();
-        const anversoCanvas = await html2canvas(document.getElementById('carnet-anverso'));
-        const anversoDataUrl = anversoCanvas.toDataURL('image/png');
-        zip.file('carnet_parte_frontal.png', anversoDataUrl.split(',')[1], { base64: true });
-
-        const reversoCanvas = await html2canvas(document.getElementById('carnet-reverso'));
-        const reversoDataUrl = reversoCanvas.toDataURL('image/png');
-        zip.file('carnet_parte_de_atras.png', reversoDataUrl.split(',')[1], { base64: true });
-
-        zip.generateAsync({ type: 'blob' }).then(content => {
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(content);
-            link.download = `Carnet_${idEmpleado}_${nombre}_${apellido}.zip`;
-            link.click();
+        employeeData.forEach(employee => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${employee.id}</td>
+                <td>${employee.nombre}</td>
+                <td>${employee.identidad}</td>
+                <td>${employee.cargo}</td>
+                <td><a href="${employee.url}" target="_blank">Ver Carnet</a></td>
+            `;
+            tbody.appendChild(row);
         });
     }
-</script>
 
+    window.onload = function() {
+        employeeData = JSON.parse(localStorage.getItem('employeeData')) || [];
+        displayLibrary();
+    };
+</script>
 </body>
 </html>
