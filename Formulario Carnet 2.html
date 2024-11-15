@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carnet de Empleado Profin</title> 
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        form {
+            margin-bottom: 20px;
+            padding: 20px;
+            background-color: #f0f0f0;
+            border-radius: 10px;
+        }
+        label {
+            font-weight: bold;
+            margin-top: 10px;
+            display: block;
+        }
+        input, textarea {
+            width: 100%;
+            margin-bottom: 10px;
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        button {
+            padding: 10px;
+            background-color: #ff8c00;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #e07a00;
+        }
+        #carnet-anverso, #carnet-reverso {
+            margin-top: 20px;
+            border: 2px solid #000;
+            padding: 10px;
+            width: 5.5cm;
+            height: 8.5cm;
+            text-align: center;
+            background-color: #fff;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+            display: inline-block;
+            vertical-align: top;
+        }
+        #carnet-anverso img {
+            width: 100px;
+            height: 100px;
+            display: block;
+            margin: 10px auto;
+            border-radius: 50%;
+        }
+        #qrCode {
+            width: 100px;
+            height: 100px;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Carnet de Empleado Profin</h1>
+
+<form id="employeeForm">
+    <label for="idEmpleado">ID del Empleado:</label>
+    <input type="text" id="idEmpleado" required>
+
+    <label for="nombre">Nombre del empleado:</label>
+    <input type="text" id="nombre" required>
+
+    <label for="apellido">Apellido del empleado:</label>
+    <input type="text" id="apellido" required>
+
+    <label for="identidad">Identidad:</label>
+    <input type="text" id="identidad" required>
+
+    <label for="cargo">Cargo del empleado:</label>
+    <input type="text" id="cargo" required>
+
+    <label for="area">Área:</label>
+    <input type="text" id="area" required>
+
+    <label for="fechaContratacion">Fecha de contratación:</label>
+    <input type="date" id="fechaContratacion" required>
+
+    <label for="foto">Foto del empleado:</label>
+    <input type="file" id="foto" accept="image/*" required>
+
+    <label for="fondoCarnet">Imagen de fondo para el carnet:</label>
+    <input type="file" id="fondoCarnet" accept="image/*">
+
+    <button type="button" onclick="generateCard()">Generar Carnet</button>
+    <button type="button" onclick="clearForm()">Borrar Información</button>
+    <button type="button" onclick="exportToExcel()">Exportar a Excel</button>
+    <button type="button" onclick="downloadCarnet()">Descargar Carnet</button>
+    <button type="button" onclick="window.location.href='menu.html'">Regresar al Menu</button>
+</form>
+
+<div id="carnet-anverso">
+    <img id="carnetFoto" src="" alt="Foto del empleado">
+    <p id="carnetNombre"></p>
+    <p id="carnetCargo"></p>
+    <p id="carnetArea"></p>
+</div>
+
+<div id="carnet-reverso">
+    <p>Fecha de contratación: <span id="carnetFechaContratacion"></span></p>
+    <p>Código QR para verificación</p>
+    <img id="qrCode" alt="Código QR">
+</div>
+
+<h2>Empleados Guardados</h2>
+<table id="employeeTable">
+    <thead>
+        <tr>
+            <th>ID Empleado</th>
+            <th>Identidad</th>
+            <th>Nombre</th>
+            <th>Apellido</th>
+            <th>Cargo</th>
+            <th>Área</th>
+            <th>Fecha Contratación</th>
+        </tr>
+    </thead>
+    <tbody>
+    </tbody>
+</table>
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
+<script>
+    function generateCard() {
+        const idEmpleado = document.getElementById('idEmpleado').value;
+        const nombre = document.getElementById('nombre').value;
+        const apellido = document.getElementById('apellido').value;
+        const cargo = document.getElementById('cargo').value;
+        const area = document.getElementById('area').value;
+        const fechaContratacion = document.getElementById('fechaContratacion').value;
+        const identidad = document.getElementById('identidad').value;
+
+        document.getElementById('carnetNombre').textContent = `${nombre} ${apellido}`;
+        document.getElementById('carnetCargo').textContent = `Cargo: ${cargo}`;
+        document.getElementById('carnetArea').textContent = `Área: ${area}`;
+        document.getElementById('carnetFechaContratacion').textContent = fechaContratacion;
+
+        const fotoInput = document.getElementById('foto');
+        const carnetFoto = document.getElementById('carnetFoto');
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            carnetFoto.src = e.target.result;
+            carnetFoto.style.display = 'block';
+        }
+        reader.readAsDataURL(fotoInput.files[0]);
+
+        const fondoInput = document.getElementById('fondoCarnet');
+        const carnetAnverso = document.getElementById('carnet-anverso');
+        if (fondoInput.files.length > 0) {
+            const fondoReader = new FileReader();
+            fondoReader.onload = function(e) {
+                carnetAnverso.style.backgroundImage = `url(${e.target.result})`;
+            }
+            fondoReader.readAsDataURL(fondoInput.files[0]);
+        } else {
+            carnetAnverso.style.backgroundImage = 'none';
+        }
+
+        const qrCode = new QRious({
+            element: document.getElementById('qrCode'),
+            size: 100,
+            value: `ID: ${idEmpleado}, Nombre: ${nombre} ${apellido}, Identidad: ${identidad}, Área: ${area}`
+        });
+
+        const employeeTable = document.getElementById('employeeTable').getElementsByTagName('tbody')[0];
+        const newRow = employeeTable.insertRow();
+        newRow.innerHTML = `<td>${idEmpleado}</td><td>${identidad}</td><td>${nombre}</td><td>${apellido}</td><td>${cargo}</td><td>${area}</td><td>${fechaContratacion}</td>`;
+    }
+
+    function clearForm() {
+        document.getElementById('employeeForm').reset();
+        document.getElementById('carnetNombre').textContent = '';
+        document.getElementById('carnetCargo').textContent = '';
+        document.getElementById('carnetArea').textContent = '';
+        document.getElementById('carnetFechaContratacion').textContent = '';
+        document.getElementById('carnetFoto').src = '';
+        document.getElementById('qrCode').src = '';
+        document.getElementById('carnet-anverso').style.backgroundImage = 'none';
+
+        const employeeTable = document.getElementById('employeeTable').getElementsByTagName('tbody')[0];
+        employeeTable.innerHTML = '';
+    }
+
+    function exportToExcel() {
+        const table = document.getElementById('employeeTable');
+        const workbook = XLSX.utils.table_to_book(table, { sheet: "Empleados" });
+        XLSX.writeFile(workbook, "empleados.xlsx");
+    }
+
+    async function downloadCarnet() {
+        const idEmpleado = document.getElementById('idEmpleado').value;
+        const nombre = document.getElementById('nombre').value;
+        const apellido = document.getElementById('apellido').value;
+
+        const zip = new JSZip();
+
+        const anversoCanvas = await html2canvas(document.getElementById("carnet-anverso"));
+        const anversoImage = anversoCanvas.toDataURL("image/png").replace(/^data:image\/(png|jpg);base64,/, "");
+        zip.file(`Carnet_${idEmpleado}_${nombre}_${apellido}_Anverso.png`, anversoImage, { base64: true });
+
+        const reversoCanvas = await html2canvas(document.getElementById("carnet-reverso"));
+        const reversoImage = reversoCanvas.toDataURL("image/png").replace(/^data:image\/(png|jpg);base64,/, "");
+        zip.file(`Carnet_${idEmpleado}_${nombre}_${apellido}_Reverso.png`, reversoImage, { base64: true });
+
+        zip.generateAsync({ type: "blob" }).then(function(content) {
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(content);
+            link.download = `Carnet_${idEmpleado}_${nombre}_${apellido}.zip`;
+            link.click();
+        });
+    }
+</script>
+
+</body>
+</html>

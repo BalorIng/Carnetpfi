@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Gestión de Empleados</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #fff;
+            color: #333;
+        }
+
+        nav {
+            margin-bottom: 20px;
+            background-color: #e07a00;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        nav ul {
+            list-style-type: none;
+            padding: 0;
+            display: flex;
+            justify-content: space-around;
+        }
+
+        nav ul li {
+            margin: 0 10px;
+        }
+
+        nav ul li a {
+            text-decoration: none;
+            color: #ffffff;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        nav ul li a:hover {
+            color: #fff;
+        }
+
+        h1 {
+            color: #000000;
+            text-align: center;
+        }
+
+        #userForm {
+            max-width: 400px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-top: 10px;
+            color: #333;
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            background-color: #e07a00;
+            color: #fff;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #e69a00;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        #userReport {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        #userReport ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        #userReport ul li {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <ul>
+        <li><a href="#" onclick="redirectToForm()">Generar Carnet de Empleado</a></li>
+        <li><a href="#" onclick="showSection('userFormSection')">Crear Usuario</a></li>
+        <li><a href="#" onclick="logout()">Cerrar Sesión</a></li>
+    </ul>
+</nav>
+
+<!-- Formulario para crear/modificar usuario -->
+<div id="userFormSection" class="hidden">
+    <h1>Gestión de Usuarios</h1>
+    <form id="userForm">
+        <label for="username">Nombre de Usuario:</label>
+        <input type="text" id="username" required>
+
+        <label for="password">Contraseña:</label>
+        <input type="password" id="password" required>
+
+        <button type="button" onclick="createUser()">Crear Usuario</button>
+        <button type="button" onclick="updateUser()">Modificar Usuario</button>
+        <button type="button" onclick="deleteUser()">Eliminar Usuario</button>
+    </form>
+</div>
+
+<!-- Reporte de usuarios -->
+<div id="userReport" class="hidden">
+    <h1>Reporte de Usuarios Creados</h1>
+    <ul id="userList">
+        <!-- Aquí se llenarán los usuarios creados -->
+    </ul>
+    <p><strong>Total de Usuarios Creados: </strong><span id="userCount">0</span></p>
+</div>
+
+<script>
+    // Redirección a la página de generación de carnet
+    function redirectToForm() {
+        window.location.href = "Formulario Carnet 2.html"; // Cambia al nombre de tu archivo de formulario
+    }
+
+    // Función para mostrar secciones
+    function showSection(sectionId) {
+        document.getElementById("userFormSection").classList.add("hidden");
+        document.getElementById("userReport").classList.add("hidden");
+        document.getElementById(sectionId).classList.remove("hidden");
+    }
+
+    // Función para crear usuario y guardar en localStorage
+    function createUser() {
+        const username = document.getElementById("username").value;
+        const password = document.getElementById("password").value;
+        const currentDate = new Date().toLocaleString();  // Obtener fecha y hora actual
+        const fullName = "Nombre Apellido"; // Reemplazar por el nombre y apellido del creador
+
+        if (localStorage.getItem(username)) {
+            alert("El usuario ya existe.");
+        } else {
+            const userData = { password, createdOn: currentDate, createdBy: fullName };
+            localStorage.setItem(username, JSON.stringify(userData));
+            alert("Usuario creado exitosamente.");
+            document.getElementById("userForm").reset();
+            updateUserReport(); // Actualizar el reporte de usuarios
+        }
+    }
+
+    // Función para modificar contraseña del usuario en localStorage
+    function updateUser() {
+        const username = document.getElementById("username").value;
+        const password = document.getElementById("password").value;
+
+        if (localStorage.getItem(username)) {
+            const userData = JSON.parse(localStorage.getItem(username));
+            userData.password = password;
+            localStorage.setItem(username, JSON.stringify(userData));
+            alert("Contraseña modificada exitosamente.");
+            document.getElementById("userForm").reset();
+        } else {
+            alert("El usuario no existe.");
+        }
+    }
+
+    // Función para eliminar usuario de localStorage
+    function deleteUser() {
+        const username = document.getElementById("username").value;
+
+        if (localStorage.getItem(username)) {
+            localStorage.removeItem(username);
+            alert("Usuario eliminado exitosamente.");
+            document.getElementById("userForm").reset();
+            updateUserReport(); // Actualizar el reporte de usuarios
+        } else {
+            alert("El usuario no existe.");
+        }
+    }
+
+    // Función para mostrar el reporte de usuarios
+    function updateUserReport() {
+        const userList = document.getElementById("userList");
+        const userCount = document.getElementById("userCount");
+
+        userList.innerHTML = "";  // Limpiar la lista antes de actualizar
+
+        let totalUsers = 0;
+        for (let i = 0; i < localStorage.length; i++) {
+            const username = localStorage.key(i);
+            const userData = JSON.parse(localStorage.getItem(username));
+            const listItem = document.createElement("li");
+            listItem.textContent = `Usuario: ${username}, Creado el: ${userData.createdOn}, Por: ${userData.createdBy}`;
+            userList.appendChild(listItem);
+            totalUsers++;
+        }
+
+        userCount.textContent = totalUsers; // Mostrar el total de usuarios
+    }
+
+    // Función de cerrar sesión y redirección a login.html
+    function logout() {
+        // Puedes añadir aquí cualquier lógica adicional de cierre de sesión si es necesario
+        window.location.href = "login.html"; // Redirige a la página de login
+    }
+</script>
+
+</body>
+</html>
